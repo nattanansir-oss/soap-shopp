@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ร้านสบู่โฮมเมด - สั่งซื้อ & จัดส่ง</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 20px; background: #f5f7f8; color: #222; }
+    .container { max-width: 960px; margin: auto; }
+    h1, h2 { margin-top: 0; }
+    .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; background: #eee; }
+    .price { font-size: 18px; font-weight: bold; color: #0a7b5c; margin: 8px 0; }
+    form, .box { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    input, select, textarea { width: 100%; padding: 8px 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { margin-top: 14px; padding: 10px 16px; border: none; border-radius: 6px; background: #0a7b5c; color: #fff; font-weight: bold; cursor: pointer; }
+    button.secondary { background: #334155; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+    th { background: #f1f5f9; }
+    .label-box { border: 2px dashed #333; padding: 14px; margin-top: 12px; border-radius: 8px; background: #fffef5; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧼 สบู่ธรรมชาติโฮมเมด</h1>
+    <p>เลือกสินค้า 2 สูตรยอดนิยม กรอกข้อมูลสั่งซื้อ และใช้ระบบหยิบสินค้า แพ็ค และจ่าหน้าพัสดุ</p>
+
+    <div class="products">
+      <div class="card">
+        <img src="images/soap1.jpg.jpeg" alt="สบู่สูตร 1" onerror="this.src='https://via.placeholder.com/300x180?text=SOAP-01'">
+        <h3>สบู่สูตรน้ำผึ้ง (SKU: SOAP-01)</h3>
+        <p>ผิวดูกระจ่างใส ลดความหมองคล้ำ กลิ่นหอมละมุน</p>
+        <div class="price">89 บาท</div>
+        <button onclick="selectSku('SOAP-01', 'สบู่สูตรน้ำผึ้ง', 89)">เลือกสูตรนี้</button>
+      </div>
+
+      <div class="card">
+        <img src="images/soap2.jpg.jpeg" alt="สบู่สูตร 2" onerror="this.src='https://via.placeholder.com/300x180?text=SOAP-02'">
+        <h3>สบู่สูตรชาโคล (SKU: SOAP-02)</h3>
+        <p>ดูดซับความมันส่วนเกิน ลดการอุดตัน เหมาะกับผิวมัน</p>
+        <div class="price">99 บาท</div>
+        <button onclick="selectSku('SOAP-02', 'สบู่สูตรชาโคล', 99)">เลือกสูตรนี้</button>
+      </div>
+    </div>
+
+    <form id="orderForm" class="no-print">
+      <h2>กรอกข้อมูลสั่งซื้อ / บันทึกข้อมูล</h2>
+      <label>เลือกสินค้า (SKU)</label>
+      <select id="skuSelect" onchange="updatePrice()">
+        <option value="SOAP-01|สบู่สูตรน้ำผึ้ง|89">SOAP-01 - สบู่สูตรน้ำผึ้ง (89 บาท)</option>
+        <option value="SOAP-02|สบู่สูตรชาโคล|99">SOAP-02 - สบู่สูตรชาโคล (99 บาท)</option>
+      </select>
+
+      <label>จำนวน</label>
+      <input type="number" id="qty" min="1" value="1" onchange="updatePrice()" required />
+
+      <label>ราคารวม (บาท)</label>
+      <input type="text" id="totalPrice" value="89" readonly />
+
+      <label>ชื่อ-นามสกุล ผู้รับ</label>
+      <input type="text" id="customerName" placeholder="ชื่อผู้รับ" required />
+
+      <label>เบอร์โทรศัพท์</label>
+      <input type="tel" id="phone" placeholder="08xxxxxxxx" required />
+
+      <label>ที่อยู่จัดส่ง</label>
+      <textarea id="address" rows="3" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" required></textarea>
+
+      <button type="submit">บันทึกข้อมูลคำสั่งซื้อ</button>
+      <span id="submitMsg" style="margin-left:10px; font-weight:bold;"></span>
+    </form>
+
+    <div class="box">
+      <h2>📦 รายการสำหรับหยิบสินค้า (Picking) & แพ็คสินค้า (Packing)</h2>
+      <button class="secondary no-print" onclick="loadOrders()">รีเฟรชรายการ</button>
+      <button class="secondary no-print" onclick="window.print()">พิมพ์ใบจ่าหน้าพัสดุ</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>รหัส</th>
+            <th>ผู้รับ</th>
+            <th>เบอร์โทร</th>
+            <th>SKU / สินค้า</th>
+            <th>จำนวน</th>
+            <th>รวม (บาท)</th>
+            <th>ใบจ่าหน้า</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody"></tbody>
+      </table>
+
+      <div id="shippingLabelArea"></div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "";
+
+    function selectSku(sku, name, price) {
+      const sel = document.getElementById("skuSelect");
+      sel.value = `${sku}|${name}|${price}`;
+      updatePrice();
+      document.getElementById("orderForm").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function updatePrice() {
+      const [, , price] = document.getElementById("skuSelect").value.split("|");
+      const qty = Math.max(1, Number(document.getElementById("qty").value || 1));
+      document.getElementById("totalPrice").value = Number(price) * qty;
+    }
+
+    function getLocalOrders() {
+      return JSON.parse(localStorage.getItem("soapOrders") || "[]");
+    }
+
+    function saveLocalOrders(list) {
+      localStorage.setItem("soapOrders", JSON.stringify(list));
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const [sku, productName, price] = document.getElementById("skuSelect").value.split("|");
+      const qty = Number(document.getElementById("qty").value || 1);
+      const totalPrice = Number(price) * qty;
+      const order = {
+        orderId: "ORD-" + Date.now().toString().slice(-6),
+        customerName: document.getElementById("customerName").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        sku,
+        productName,
+        qty,
+        totalPrice,
+        status: "รอหยิบ"
+      };
+
+      const orders = getLocalOrders();
+      orders.unshift(order);
+      saveLocalOrders(orders);
+      renderOrders(orders);
+
+      if (SCRIPT_URL) {
+        try {
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(order)
+          });
+          document.getElementById("submitMsg").innerText = "✅ บันทึกลง Google Sheet แล้ว";
+        } catch (err) {
+          document.getElementById("submitMsg").innerText = "⚠️ บันทึกในเครื่องแล้ว";
+        }
+      } else {
+        document.getElementById("submitMsg").innerText = "✅ บันทึกรายการเรียบร้อย (พร้อมหยิบ/แพ็ค/จ่าหน้า)";
+      }
+
+      this.reset();
+      updatePrice();
+    });
+
+    async function loadOrders() {
+      let orders = getLocalOrders();
+      if (SCRIPT_URL) {
+        try {
+          const res = await fetch(SCRIPT_URL);
+          const sheetData = await res.json();
+          if (Array.isArray(sheetData) && sheetData.length) {
+            orders = sheetData.map((r, idx) => ({
+              orderId: r.Order_ID || "ROW-" + (idx + 1),
+              customerName: r.Customer_Name || "",
+              phone: r.Phone || "",
+              address: r.Address || "",
+              sku: r.SKU || "",
+              productName: r.Product_Name || "",
+              qty: r.Qty || 1,
+              totalPrice: r.Total_Price || 0,
+              status: r.Status || "รอหยิบ"
+            })).reverse();
+          }
+        } catch (e) {}
+      }
+      renderOrders(orders);
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById("orderTableBody");
+      tbody.innerHTML = "";
+      orders.forEach((o, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${o.orderId}</td>
+          <td>${o.customerName}</td>
+          <td>${o.phone}</td>
+          <td>${o.sku} - ${o.productName}</td>
+          <td>${o.qty}</td>
+          <td>${o.totalPrice}</td>
+          <td><button onclick="showLabel(${i})">สร้างใบจ่าหน้า</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      if (orders.length > 0) showLabel(0);
+      else document.getElementById("shippingLabelArea").innerHTML = "";
+    }
+
+    function showLabel(index) {
+      const orders = getLocalOrders();
+      const o = orders[index];
+      if (!o) return;
+      document.getElementById("shippingLabelArea").innerHTML = `
+        <div class="label-box">
+          <h3>🏷️ ใบจ่าหน้าพัสดุ (${o.orderId})</h3>
+          <p><strong>ผู้ส่ง:</strong> ร้านสบู่ธรรมชาติโฮมเมด | โทร: 080-000-0000</p>
+          <p><strong>ผู้รับ:</strong> ${o.customerName} | <strong>โทร:</strong> ${o.phone}</p>
+          <p><strong>ที่อยู่จัดส่ง:</strong> ${o.address}</p>
+          <p><strong>รายการหยิบ & แพ็ค:</strong> [${o.sku}] ${o.productName} × ${o.qty} ชิ้น (ยอดรวม ${o.totalPrice} บาท)</p>
+        </div>
+      `;
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>
